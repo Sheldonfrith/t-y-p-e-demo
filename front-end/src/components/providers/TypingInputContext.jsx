@@ -1,6 +1,4 @@
 import React, {useState, useEffect,useCallback} from 'react';
-import {getPriorityList} from '../../lib/trainingModeUtils'
-import generateNewTTT from '../../lib/generateNewTTT'
 import { useContext } from 'react';
 import { TypingSettingsContext } from './TypingSettingsContext';
 import { TypingStatsContext } from './TypingStatsContext';
@@ -22,12 +20,14 @@ export const TypingInputContext = React.createContext({
     unPause: ()=>{},
     handleInput: ()=>{},
     handleKeyDown: ()=>{},
+    newTTTReset: ()=>{},
+    changeAutoPauseTime: ()=>{},
+    getCurrentTTT: ()=>{},
 });
 
 let pauseOverlayDisplay = 'none'; //either none or block
 let currentTTTStatus = 'not-started';
 let currentCharIndex = 0;
-let previousCharIndex = (-1);
 let totalKeyPresses = 0;
 let correctlyTypedChars = {};
 let errorState = 0;
@@ -36,7 +36,10 @@ let errorIndex = null;
 let startPause = null;
 let endPause = null;
 let tempColorList = [];
-
+let prevCurrentTTT1 = null;
+let prevCurrentTTT2 = null;
+let prevIsPaused1 = null;
+let prevKeyPressTrigger1 = null;
 
 
 const getClassNamesFromColor = (color, textOrBackground) => {
@@ -71,20 +74,41 @@ export default function TypingInputProvider({children}) {
     const currentSettings = useContext(TypingSettingsContext);
     const currentStats = useContext(TypingStatsContext);
     
+    const [autoPauseTime, setAutoPauseTime] = useState(10000);
     const [hiddenInputVal, setHiddenInputVal] = useState('');
     const [isPaused, setIsPaused] = useState(null);
     const [currentKey, setCurrentKey]= useState(null);
     const [keyPressTrigger, setKeyPressTrigger] = useState(0);
-    //first characters color should start as green
-    const [colorList, setColorList] = useState({
-        bg:currentSettings.currentTTT.map((char,index) => index===0?getClassNamesFromColor('green', 'bg'):getClassNamesFromColor('default', 'bg')),
-        text:currentSettings.currentTTT.map((char,index) => getClassNamesFromColor('default', 'text')),
-    })
-
+    const [currentTTT, setCurrentTTT] = useState([]);
+    const [colorList, setColorList] = useState({bg:[getClassNamesFromColor('green','bg')],text:[getClassNamesFromColor('default','text')]});
     tempColorList = colorList;
-    
+
+    const updateColorList =useCallback((customTTT = currentTTT) =>{
+        if (!customTTT) return;
+        const newColorList ={
+            bg:customTTT.map((char,index) => index===0?getClassNamesFromColor('green', 'bg'):getClassNamesFromColor('default', 'bg')),
+            text:customTTT.map((char,index) => getClassNamesFromColor('default', 'text')),
+        };
+        setColorList(newColorList);
+        tempColorList = newColorList;
+    },[currentTTT]);
+    const getCurrentTTT = useCallback((newTTT)=>{
+        console.log('setting current ttt in typinginputcontext, colorlist is : ', colorList)
+        updateColorList(newTTT);
+        setCurrentTTT(newTTT);
+    },[colorList, updateColorList]);
+
+    //whenever TTT updates reset the colorlist
+    useEffect(()=>{
+        if (prevCurrentTTT1 === currentTTT) return;
+        if (!currentTTT || !currentTTT.length) return;
+        console.log('useEffect current TTT update, set colorList', currentTTT)
+        updateColorList();
+        prevCurrentTTT1 = currentTTT;
+    },[currentTTT, updateColorList])
+    //first characters color should start as green
     const setCurrentColor = useCallback((bgColor = null, textColor=null, index) => {
-        console.log('setting current color ', bgColor, textColor, index);
+        // console.log('setting current color ', bgColor, textColor, index);
         bgColor = bgColor?getClassNamesFromColor(bgColor, 'bg'): null;
         textColor = textColor? getClassNamesFromColor(textColor, 'text'):null;
         let newColorList = {
@@ -98,8 +122,10 @@ export default function TypingInputProvider({children}) {
             newColorList.text[index] = textColor
         }
         tempColorList = newColorList;
-    }, [colorList]);
-    const setAllColor= useCallback((bgColor = null, textColor=null) => {
+    },[] );
+    const setAllColor= useCallback( (bgColor = null, textColor=null) => {
+        tempColorList = colorList;
+        console.log('setting all color; bg color',bgColor, 'text color', textColor, 'colorlist', tempColorList);
         bgColor = bgColor?getClassNamesFromColor(bgColor, 'bg'): null;
         textColor = textColor? getClassNamesFromColor(textColor, 'text'):null;
         //retain current values if new value isn't specified
@@ -108,31 +134,40 @@ export default function TypingInputProvider({children}) {
             text: tempColorList.text.map(color => textColor?textColor:color),
         }
         tempColorList = newColorList;
-    }, [colorList]);
-    const newPauseTimer = useCallback(() => {
-        const totalKeyPressesBeforeTimeout = totalKeyPresses;
+    },[colorList, ]);
+    const newPauseTimer = useCallback((totalKeyPressesBeforeTimeout) => {
         setTimeout(() => {
+        console.log('autopause timer done:', totalKeyPressesBeforeTimeout, totalKeyPresses);
         if (totalKeyPressesBeforeTimeout === totalKeyPresses){
-            pause();
+            console.log('pausing due to timeout');
+            setIsPaused(true);
         }
         return;
         }
-        ,currentSettings.autoPauseTime
+        ,autoPauseTime
         );
-    }, [currentSettings.autoPauseTime]);
+    }, [autoPauseTime,]);
+
+    const changeAutoPauseTime = useCallback((event, value) => {
+        setAutoPauseTime(value);
+    },[]);
 
     //run these changes whenever isPaused changes:
     useEffect(
         () => {
-            console.log('ispaused use effect: ', isPaused);
+            if (prevIsPaused1 === isPaused) return;
             if(isPaused === true) {
+                console.log('useeffect, detected pause');
                 pauseOverlayDisplay = 'block';
-                setAllColor(null, 'fade');
+                // setAllColor(null, 'fade');
                 startPause = new Date();
+                setColorList(tempColorList);
+                prevIsPaused1 = isPaused;
             }
             if (isPaused === false) {
+                console.log('useeffect, detected unpause');
                 pauseOverlayDisplay = 'none';
-                setAllColor(null, 'unfade');
+                // setAllColor(null, 'unfade');
                 //stats related stuff:
                 //only do this if the TTT was already active
                 if (currentTTTStatus !== 'not-started') {
@@ -146,25 +181,29 @@ export default function TypingInputProvider({children}) {
                     pauseDuration += 10;
                     currentStats.unPauseUpdate(pauseDuration);
                 }
+                setColorList(tempColorList);
+                prevIsPaused1 = isPaused;
             }
             return;
         }
-        , [isPaused]
+        , [isPaused, currentStats, setAllColor]
     )
-    const pause = () => {
+    const pause = useCallback(() => {
         setIsPaused(true);
 
-    }
-    const unPause = () => {
+    },[]);
+    const unPause = useCallback(() => {
+        //don't fire at the begging of the app loading
+        if (isPaused=== null) return;
         setIsPaused(false);
         
-    }
-    const handleInput = (event) => {
+    },[isPaused]);
+    const handleInput = useCallback((event) => {
         //clear the input box so only individual characters are returned from the input event
         setCurrentKey(event.target.value);
         setKeyPressTrigger(current => current+1);
-    }
-    const handleKeyDown = (event) => {
+    },[]);
+    const handleKeyDown = useCallback((event) => {
         //focus is assumed to be within input area, this should not fire otherwise
         const key = event.key
         //detect backspace event and handle it
@@ -176,15 +215,18 @@ export default function TypingInputProvider({children}) {
         if(key==='Tab'){
         event.preventDefault();
         }
-    }
-    //fire when keyTrigger Changes
+    },[]);
+    //fire when keyTrigger Changes or currentTTT changes
     useEffect ( () => {
-        if (currentKey===null) return;
+
+        //check that either key trigger or current TTT has changed
+        if (prevKeyPressTrigger1 === keyPressTrigger && prevCurrentTTT2 === currentTTT) return;
         //only fire if currentKey has changed and index has changed (incase two identical keys)
+        if (currentKey===null || keyPressTrigger === 0) return;
         totalKeyPresses ++;
-        
+
         console.log('currentkey useeffect :', currentKey);
-        const handleTypingEventByType = async (eventType) => {
+        const handleTypingEventByType = (eventType) => {
             let realCurrentIndex = errorIndex?errorIndex-1:currentCharIndex;
             console.log(eventType);
             switch (eventType) {
@@ -202,10 +244,10 @@ export default function TypingInputProvider({children}) {
                     currentCharIndex ++;
                     //detect if we are at the end of the text and if so stop listening for keypresses and exit
                     //also make sure we are not running this before the session has even started
-                    if (currentCharIndex >= currentSettings.currentTTT.length && currentSettings.currentTTT.length >1) {
+                    if (currentCharIndex >= currentTTT.length && currentTTT.length >1) {
                         currentTTTStatus = 'finished';
                         //TODO and highlight the errors the user made
-                        setAllColor(null, 'fade');
+                        pause();
                         break;
                     }
                     setCurrentColor('green',null, parseInt(currentCharIndex));
@@ -215,7 +257,7 @@ export default function TypingInputProvider({children}) {
                     errorState = 1;
                     errorIndex = currentCharIndex;
                     realCurrentIndex = errorIndex?errorIndex-1:currentCharIndex;
-                    currentStats.newMistypedChar(currentSettings.currentTTT[currentCharIndex], (errorState>0)?realCurrentIndex+2:realCurrentIndex+1);
+                    currentStats.newMistypedChar(currentTTT[currentCharIndex], (errorState>0)?realCurrentIndex+2:realCurrentIndex+1);
                     //detect and set barrier state
                     errorState > currentSettings.maxCharsFromError ? barrierState = true : barrierState = false;
                     //incorrect key press> current key red, move forward one, next key grey
@@ -253,13 +295,23 @@ export default function TypingInputProvider({children}) {
                     //reduce inErrorState Count, make barrier state false
                     errorState --;
                     barrierState = false;
-                    //if reached the error, remove the error index value
-                    if (currentCharIndex <= errorIndex) errorIndex = null;
-                    //backspace with error state> current key white, move back one, prev one same color unless its red then it becomes green
                     setCurrentColor('white',null,currentCharIndex);
-                    currentCharIndex --;
-                    //detect if this was the original error, make it green
-                    if (currentCharIndex === errorIndex)  setCurrentColor('green', null, currentCharIndex);
+                    //if reached the error, remove the error index value
+                    //! 
+                    if (currentCharIndex === errorIndex+1){
+                        errorIndex = null;
+                        errorState = 0;
+                        currentCharIndex --;
+                        setCurrentColor('green',null,currentCharIndex);
+                    }
+                    else {currentCharIndex --;}
+
+                    // if (currentCharIndex <= errorIndex) errorIndex = null;
+                    // //backspace with error state> current key white, move back one, prev one same color unless its red then it becomes green
+                    // setCurrentColor('white',null,currentCharIndex);
+                    // currentCharIndex --;
+                    // //detect if this was the original error, make it green
+                    // if (currentCharIndex === errorIndex)  setCurrentColor('green', null, currentCharIndex);
                     break;
                 default: 
                     console.log('error, detectkeypresstype did not catch that behaviour');
@@ -275,11 +327,11 @@ export default function TypingInputProvider({children}) {
             //is the typing paused?
             if (isPaused) return;
             //set timer for autoPause
-            newPauseTimer();
+            newPauseTimer(parseInt(totalKeyPresses));
     
             // variables for this function
-            const correctChar = currentSettings.currentTTT[currentCharIndex];
-    
+            const correctChar = currentTTT[currentCharIndex];
+            console.log('correct char', correctChar, currentCharIndex, currentTTT)
             //Case 1: correct
             if (currentKey === correctChar && errorState < 1) {
                 handleTypingEventByType('correct');
@@ -313,13 +365,42 @@ export default function TypingInputProvider({children}) {
             console.log('error, detectkeypresstype did not catch that behaviour');
         }
         const callAll= () => {
+        console.log('callAll, relevant key detected');
         detectTypingEventType();
         setHiddenInputVal('');
         }
         callAll();
+        prevCurrentTTT2 = currentTTT;
+        prevKeyPressTrigger1 = keyPressTrigger;
+        return function cleanup() {
+            //cleanup the setTimeout function for the autoPauseTimer
+            clearInterval(newPauseTimer);
+        }
     },
-    [keyPressTrigger]);
+    [keyPressTrigger, currentTTT, currentKey, currentSettings.maxCharsFromError, currentStats, isPaused,
+    newPauseTimer, setAllColor, setCurrentColor,]);
 
+    const newTTTReset = useCallback(() => {
+        console.log('currentSettings:', currentTTT);
+        setIsPaused(true);
+        setCurrentKey('');
+        setKeyPressTrigger(0);
+        setColorList({
+            bg:currentTTT.map((char,index) => index===0?getClassNamesFromColor('green', 'bg'):getClassNamesFromColor('default', 'bg')),
+            text:currentTTT.map((char,index) => getClassNamesFromColor('default', 'text')),
+        })
+        currentTTTStatus = 'not-started';
+        currentCharIndex = 0;
+        totalKeyPresses = 0;
+        correctlyTypedChars = {};
+        errorState = 0;
+        barrierState = false;
+        errorIndex = null;
+        startPause = null;
+        endPause = null;
+        tempColorList = [];
+        console.log('done input');
+    },[currentTTT,]);
     return (
     <TypingInputContext.Provider
         value={{
@@ -331,6 +412,9 @@ export default function TypingInputProvider({children}) {
             unPause: unPause,
             handleInput: handleInput,
             handleKeyDown: handleKeyDown,
+            newTTTReset: newTTTReset,
+            changeAutoPauseTime: changeAutoPauseTime,
+            getCurrentTTT: getCurrentTTT,
         }
         }
     >

@@ -1,7 +1,4 @@
 import React, { useState, useEffect, useCallback } from 'react';
-
-import { getPriorityList } from '../../lib/trainingModeUtils'
-import generateNewTTT from '../../lib/generateNewTTT'
 import _ from 'lodash'
 
 //initialize state structure here
@@ -19,6 +16,7 @@ export const TypingStatsContext = React.createContext({
     wastedKeysPercentage: ()=> {},
     updateAccuracyPercentage: ()=> {},
     updateWastedKeysPercentage: ()=> {},
+    newTTTReset: ()=> {},
 });
 
 let TTTStartTime = null;
@@ -36,24 +34,24 @@ export default function TypingStatsProvider({ children }) {
     const [averageCharSpeeds, setAverageCharSpeeds] = useState({
     }); 
     const [lastCharTime, setLastCharTime] = useState(null);
+   
     //non state variables
 
     //udpate average character speeds
     useEffect(()=> {
+        console.log('useeffect for updating ave char speeds');
         let newAverageCharSpeeds = {};
-        Object.keys(characterSpeeds).map(
+        Object.keys(characterSpeeds).forEach(
             char => {
-            console.log(characterSpeeds[char]);
             const thisAverage = (characterSpeeds[char].totalTime/characterSpeeds[char].timesTyped*1.0);
             _.set(newAverageCharSpeeds,char,thisAverage);
             }
         );
         setAverageCharSpeeds(newAverageCharSpeeds);
 
-    }, [JSON.stringify(characterSpeeds)])
+    }, [JSON.stringify(characterSpeeds), characterSpeeds])
 
     const getWorstChar = useCallback(() => {
-        const vals = Object.values(averageCharSpeeds);
         let slowestCharVal = 0;
         let slowestCharKey = '';
         Object.keys(averageCharSpeeds).forEach(char => {
@@ -63,16 +61,15 @@ export default function TypingStatsProvider({ children }) {
             }
         }
         );
-        console.log(slowestCharKey)
         return slowestCharKey;        
     }, [averageCharSpeeds]);
 
-    const unPauseUpdate = (pauseDuration) => {
+    const unPauseUpdate = useCallback((pauseDuration) => {
         TTTStartTime = TTTStartTime + pauseDuration;
-        lastCharTime = lastCharTime + pauseDuration;
-    }
+        setLastCharTime(prev => prev + pauseDuration);
+    },[]);
 
-    const insertCharacterSpeed = (char, time) => {
+    const insertCharacterSpeed = useCallback((char, time) => {
         //this function adds the total time taken to type each character to that character's
         //spot in the characterSpeeds object, as well as the total times typed, for average calculationns
         const newCharacterSpeeds = characterSpeeds;
@@ -82,28 +79,29 @@ export default function TypingStatsProvider({ children }) {
         const newCharObj = {totalTime: newTotalTime, timesTyped: newTimesTyped};
         _.set(newCharacterSpeeds, char, newCharObj); 
         setCharacterSpeeds(newCharacterSpeeds);
-    }
+    },[characterSpeeds]);
 
-    const newMistypedChar = (correctChar, totalRealCharacters) => {
+    const newMistypedChar = useCallback((correctChar, totalRealCharacters) => {
         let newMistypedChars = mistypedChars;
         _.set(newMistypedChars, correctChar, mistypedChars[correctChar] ? mistypedChars[correctChar] + 1 : 1);
         const totalMistypedChars = Object.keys(newMistypedChars).reduce((total,char)=> total+newMistypedChars[char],0)
         setAccuracy(100.0-(totalMistypedChars/(totalRealCharacters/100.0)));  
         setMistypedChars(newMistypedChars);
-    }
-    const updateAccuracyPercentage =(totalRealCharacters) => {
+    },[mistypedChars]);
+    const updateAccuracyPercentage = useCallback((totalRealCharacters) => {
         const totalMistypedChars = Object.keys(mistypedChars).reduce((total,char)=> total+mistypedChars[char],0)
+        console.log('update accuracy: ', totalMistypedChars, totalRealCharacters);
         setAccuracy(100.0-(totalMistypedChars/(totalRealCharacters/100.0)));
-    }
-    const incrementWastedKeys = (totalCharactersTyped) => {
+    },[mistypedChars])
+    const incrementWastedKeys = useCallback((totalCharactersTyped) => {
         setWastedKeysPercentage((wastedKeys+1)/(totalCharactersTyped/100));
-        setWastedKeys(wastedKeys + 1);
-    }
+        setWastedKeys(old => old+ 1);
+    },[wastedKeys]);
 
-    const updateWastedKeysPercentage = (totalCharactersTyped) => {
+    const updateWastedKeysPercentage = useCallback((totalCharactersTyped) => {
         setWastedKeysPercentage((wastedKeys)/(totalCharactersTyped/100));
-    }
-    const calcTypingSpeed = (realCurrentIndex) => {
+    },[wastedKeys]);
+    const calcTypingSpeed = useCallback((realCurrentIndex) => {
         //5 characters, in this case significant, required keystrokes (if backspace is required than it counts)
         //counts as one 'word' in the wpm calculation
         //the calculation starts when the first letter is successfully typed, this time is recorded and used
@@ -121,9 +119,9 @@ export default function TypingStatsProvider({ children }) {
         const words = realCurrentIndex / 5.0;
         const minutes = timeDiff / 60000.0;
         setWPM(Math.floor(words / minutes));
-    }
+    },[]);
 
-    const calcCharSpeed = (char) => {
+    const calcCharSpeed = useCallback((char) => {
         // if char input is a character code, convert it to string
         if (typeof char === 'number') char = String.fromCharCode(char);
 
@@ -139,8 +137,19 @@ export default function TypingStatsProvider({ children }) {
         //handle all characters after the first
         insertCharacterSpeed(char, (curTime - lastCharTime))
         setLastCharTime(curTime);
-    }
-
+    },[lastCharTime, insertCharacterSpeed]);
+    const newTTTReset = useCallback(() => {
+        setWPM(0);
+        setAccuracy(100);
+        setWastedKeys(0);
+        setWastedKeysPercentage(0);
+        setMistypedChars({});
+        setCharacterSpeeds({});
+        setAverageCharSpeeds({});
+        setLastCharTime(null);
+        TTTStartTime = null;
+        console.log('done stats reset');
+    }, []);
     return (
         <TypingStatsContext.Provider
             value={{
@@ -156,6 +165,7 @@ export default function TypingStatsProvider({ children }) {
                 wastedKeysPercentage: wastedKeysPercentage,
                 updateAccuracyPercentage: updateAccuracyPercentage,
                 updateWastedKeysPercentage: updateWastedKeysPercentage,
+                newTTTReset: newTTTReset,
             }
             }
         >

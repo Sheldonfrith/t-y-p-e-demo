@@ -2,47 +2,78 @@ import React, {useState, useEffect, useContext, useRef} from 'react';
 import TTTCharacter from './TTTCharacter'
 import {TypingInputContext} from './providers/TypingInputContext'
 import {TypingSettingsContext} from './providers/TypingSettingsContext'
+import ClickAwayListener from '@material-ui/core/ClickAwayListener';
+import { CurrentTTTContext } from './providers/CurrentTTTContext';
 
+let prevPauseTrigger = null;
 export default function TypingArea(props) {
 
 const typingSettingsContext = useContext(TypingSettingsContext);
 const typingInputContext = useContext(TypingInputContext);
+const currentTTT = useContext(CurrentTTTContext);
 const hiddenInputRef = useRef();
+const [pauseOverlayDisplay, setPauseOverlayDisplay] = useState('none');
 
-//when unpaused, and on initial render, focus the hidden input
+//when unpaused focus the hidden input
 useEffect(
    () => {
-    if (!typingInputContext.isPaused ) {
+       if (typingInputContext.isPaused === false) {
+        hiddenInputRef.current.focus();
+        //also change display of pauseOverlay
+        setPauseOverlayDisplay('none');
+       }
+       if (typingInputContext.isPaused === true) {
+           setPauseOverlayDisplay('block');
+       }
+   }, [typingInputContext.isPaused, hiddenInputRef]
+)
+
+//on initial render, focus the hidden input
+useEffect(
+    () => {
         document.activeElement.blur();
         hiddenInputRef.current.focus();
-    }
-   }, [typingInputContext.isPaused]
+    }, []
 )
+
+//when pauseTrigger changes, send a unpause event
+useEffect(()=> {
+    if (prevPauseTrigger === props.pauseTrigger) return;
+    typingInputContext.unPause();
+    prevPauseTrigger = props.pauseTrigger;
+}, [props.pauseTrigger, typingInputContext])
+
+
 return (
+    <ClickAwayListener onClickAway={() => typingInputContext.pause()}>
+
+    <div className={'typingAreaContainer'}>
     <div onKeyDown={typingInputContext.handleKeyDown} onClick={typingInputContext.unPause}>
         
-        {typingSettingsContext.currentTTT.map((char, index) => <TTTCharacter char={char} index={index} key={'tttchar'+index}/>)}
+        {currentTTT.currentTTT?
+        currentTTT.currentTTT.map((char, index) => <TTTCharacter char={char} index={index} key={'tttchar'+index} className={typingInputContext.colorList.bg[index]+' '+typingInputContext.colorList.text[index]}/>)
+        :null}
 
-      <div id="pauseOverlay"  style={{display: typingInputContext.pauseOverlayDisplay}}>
-        <div id="pauseOverlayText" >Paused. Press Esc to unpause.</div>
-      </div>
-
+      
+    <div>
       <input 
         id="hiddenInput" 
         type="text" 
         value={typingInputContext.hiddenInputVal} 
         className="hiddenInput" 
-        //TODO add a ref and useeffect to focus the input when isPaused becomes false
-                //set focus to input box unless already in focus, blur current element
-
-        // onInput={typingInputContext.handleInput} 
+        style={{opacity: 0}} 
         onChange={typingInputContext.handleInput}
         onBlur={typingInputContext.pause} 
         onFocus={typingInputContext.unPause}
         disabled={typingInputContext.isPaused}
         ref={hiddenInputRef}
         />
-
     </div>
+    </div>
+    <div className="pauseOverlay"  style={{display: pauseOverlayDisplay}}>
+        <div className="pauseOverlayText" >Paused. Press Esc to unpause.</div>
+      </div>
+    </div>
+    </ClickAwayListener>
 );
 }

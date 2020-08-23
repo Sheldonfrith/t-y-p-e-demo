@@ -98,7 +98,7 @@ export function applyDifficulty(probabilityList, difficulty){
 //*MAIN FUNCTION HERE...
 
 export default function generateNewTTT(difficulty, TTTLength, priorityList) {
-
+    console.log('generating new TTT', difficulty, TTTLength );
     //check input structure
     if (
         typeof difficulty !== 'string' ||
@@ -123,13 +123,18 @@ export default function generateNewTTT(difficulty, TTTLength, priorityList) {
 
     //Moke sure space ' ' character doesn't appear twice in a row
     ///and make sure space character isn't the first character
+    //and make sure there is a space character at least evere 'x' characters
+    const maxWordLength = 8;
+    let currentWordLength = 0;
     let lastChar = '';
     let newChar = '';
     while (TTTLength--){
         newChar = getNewRandomCharacter(probabilityList);
+        if(currentWordLength > maxWordLength) {newChar = '32'; currentWordLength = 0};
         while ((lastChar === '32' && newChar === '32') || (lastChar === '' && newChar === '32')) {
             newChar = getNewRandomCharacter(probabilityList);
         }
+        currentWordLength ++;
         nextTTT.push(String.fromCharCode(newChar));
         lastChar = newChar;
     }

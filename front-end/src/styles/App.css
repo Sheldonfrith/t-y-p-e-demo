@@ -1,40 +1,43 @@
+span {
+  font-family: monospace;
+}
+
+h1, h3 {
+  margin: 5px;
+}
+body {
+  /* background-image: linear-gradient(#9E856C, #FEDD59); */
+  background-image: linear-gradient(white, #FEDD59);
+  background-size: cover;
+  background-repeat: no-repeat;
+}
+
 .App {
+  background-image: radial-gradient(#D90368, #3B3142);
   text-align: center;
-}
-
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
+  width: 75%;
+  margin-left: auto;
+  margin-right: auto;
+  max-height: 400vh;
+  display: grid;
+  grid-template: repeat(40,1fr)/repeat(40,1fr);
 }
 
 .App-header {
-  background-color: #282c34;
-  min-height: 10vh;
+  color: rgba(0,0,0,0,0);
+  background-image:url(/images/header-animation.gif);  
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  font-size: calc(10px + 2vmin);
+  font-size: 2.5vh;
   color: white;
+  grid-row: 2/span 5;
+  grid-column:1/span 40;
 }
 
 .App-link {
   color: #61dafb;
-}
-
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
 }
 
 .white {
@@ -54,4 +57,74 @@
 }
 .blackText {
   color: black;
+}
+
+.typingAreaContainer {
+  position: relative;
+  min-width: 100%;
+  min-height: 100%;
+}
+.pauseOverlay {
+  position: absolute; /* Sit on top of the page content */
+  /* display: none; Hidden by default */
+  width: 100%; /* Full width (cover the whole page) */
+  height: 100%; /* Full height (cover the whole page) */
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  place-self: center;
+  background-image: radial-gradient(rgba(255,255,255,1 ), rgba(255,255,255,0.5)); /* Black background with opacity */
+  cursor: pointer; /* Add a pointer on hover */
+  z-index: 1000;
+}
+.pauseOverlayText {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  font-size: large;
+  color: black;
+  transform: translate(-50%,-50%);
+  place-self: center;
+  -ms-transform: translate(-50%,-50%);
+}
+
+.slider {
+  width: 50%;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.typingArea {
+  position: relative;
+  background-color: #F6F7EB;
+  font-size: 2.8vw;
+  grid-row:8 / span 21;
+  grid-column: 2/ span 28;
+ 
+
+}
+
+.settingsArea {
+  background-color: #F6F7EB;
+  display: flexbox;
+  grid-row: 30/40;
+  grid-column: 2/ 40;
+}
+
+.statsArea {
+  background-color: #F6F7EB;
+  padding: 1vw;
+  font-size: 2vw;
+  grid-row: 8/span 21;
+  grid-column: 31/ 40;
+}
+
+.settingsAppBar {
+  max-width: 69vw;
+  background-color: #FEDD59;
+}
+
+.newTTTButton {
+  background-color: red;
 }
