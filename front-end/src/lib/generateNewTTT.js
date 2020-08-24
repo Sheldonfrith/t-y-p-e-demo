@@ -135,7 +135,9 @@ export default function generateNewTTT(difficulty, TTTLength, priorityList) {
             newChar = getNewRandomCharacter(probabilityList);
         }
         currentWordLength ++;
+        //convert space to open box
         nextTTT.push(String.fromCharCode(newChar));
+        // nextTTT.push((newChar=== '32')?"\u2423":String.fromCharCode(newChar));
         lastChar = newChar;
     }
 

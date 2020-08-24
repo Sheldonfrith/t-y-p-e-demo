@@ -3,37 +3,14 @@ import { TypingSettingsContext } from './providers/TypingSettingsContext';
 import { TypingInputContext } from './providers/TypingInputContext';
 import Slider from '@material-ui/core/Slider';
 import { CurrentTTTContext } from './providers/CurrentTTTContext';
-import AppBar from '@material-ui/core/AppBar';
-import Tabs from '@material-ui/core/Tabs';
-import Tab from '@material-ui/core/Tab';
-import Typography from '@material-ui/core/Typography';
-import Box from '@material-ui/core/Box';
+import Tabs from './Tabs';
 import PropTypes from 'prop-types';
+import { sizing } from '@material-ui/system';
+import Box from '@material-ui/core/Box'
+import clsx from 'clsx';
+import { makeStyles } from '@material-ui/core/styles';
 
-function TabPanel(props) {
-    const { children, value, index, ...other } = props;
-  
-    return (
-      <div
-        role="tabpanel"
-        hidden={value !== index}
-        id={`settings-${index}`}
-        aria-labelledby={`settings-${index}`}
-        {...other}
-      >
-        {value === index && (
-          <Box p={3}>
-            <Typography>{children}</Typography>
-          </Box>
-        )}
-      </div>
-    );
-  }
-  TabPanel.propTypes = {
-    children: PropTypes.node,
-    index: PropTypes.any.isRequired,
-    value: PropTypes.any.isRequired,
-  };
+
   function a11yProps(index) {
     return {
       id: `settings-${index}`,
@@ -75,7 +52,42 @@ const TTTLengthSliderMarks = [
 //for material-ui sliders...
 function valuetext(value) {
     return `${value}`;
-  }
+}
+const useStyles = makeStyles({
+    root: {
+    //   maxHeight: 5,
+    //   padding: '1.8em',
+      width: '70%',
+      overflow: 'visible',
+    },
+    // content: {
+    //     maxHeight: 5,
+
+    // },
+    markLabel: {
+        top: '2.2em',
+        overflow: 'visible',
+    },
+    track: {
+        backgroundColor:'#F77F00',
+        height: '4px',
+    },
+    thumb: {
+        backgroundColor: '#D90368',
+        height: '13px',
+        '&:hover': {
+            boxShadow: '0px 0px 0px 8px rgba(217, 3, 104, 0.16)',
+        }
+    },
+    rail: {
+        backgroundColor:'rgba(247, 127, 0, 0.4)',
+        height: '4px',
+    },
+    mark: {
+        backgroundColor: '#F77F00',
+        height: '4px',
+    }
+  });
 
 export default function SettingsArea(props) {
 const typingSettingsContext = useContext(TypingSettingsContext);
@@ -84,73 +96,78 @@ const [value, setValue] = useState(0);
 const handleChange = useCallback((event, newValue) => {
     setValue(newValue);
 },[]);
+const classes = useStyles();
 
 return (
-<div >Settings
-      <AppBar position="static" className="settingsAppBar" color="transparent">
-        <Tabs 
-        value={value} 
-        onChange={handleChange} 
-        aria-label="simple tabs example"
-        variant="scrollable"
-        scrollButtons="auto"
-        >
-          <Tab label="Auto-Pause Timer" {...a11yProps(0)} />
-          <Tab label="Difficulty" {...a11yProps(1)} />
-          <Tab label="Text Length" {...a11yProps(2)} />
-          <Tab label="Training Mode" {...a11yProps(3)}/>
-        </Tabs>
-      </AppBar>
-      <TabPanel value={value} index={0}>
-      <div className="autoPauseSelector slider">
-    <Slider
-        defaultValue={10000}
-        getAriaValueText={valuetext}
-        aria-labelledby="difficulty-slider"
-        step={1000}
-        max={15000}
-        min={2000}
-        valueLabelDisplay="auto"
-        marks={autoPauseSliderMarks}
-        onChange={typingInputContext.changeAutoPauseTime}
-      />
-    </div>
-      </TabPanel>
-      <TabPanel value={value} index={1}>
-      <div className="difficultySelector slider">
-    <Slider
-        defaultValue={0}
-        getAriaValueText={valuetext}
-        aria-labelledby="difficulty-slider"
-        step={1}
-        max={3}
-        valueLabelDisplay="auto"
-        marks={difficultySliderMarks}
-        onChange={typingSettingsContext.changeDifficulty}
-      />
-    </div>
-      </TabPanel>
-      <TabPanel value={value} index={2}>
-      <div className="TTTLengthSelector slider">
+<div >
+    <div className="settingsTitle">Settings:</div>
+    <Tabs>
+      <div className="autoPauseSelector slider" label="Auto Pause Time">
         <Slider
+            classes={{
+                root: classes.root,
+                // content: classes.content,
+                markLabel: classes.markLabel,
+                track: classes.track,
+                thumb: classes.thumb,
+                rail: classes.rail,
+                mark: classes.mark,
+            }}
+            defaultValue={10000}
+            getAriaValueText={valuetext}
+            aria-labelledby="difficulty-slider"
+            step={1000}
+            max={15000}
+            min={2000}
+            valueLabelDisplay="off"
+            marks={autoPauseSliderMarks}
+            onChange={typingInputContext.changeAutoPauseTime}
+        />
+      </div>
+      <div className="difficultySelector slider" label="Difficulty">
+        <Slider
+            classes={{
+                root: classes.root,
+                // content: classes.content,
+                markLabel: classes.markLabel,
+                track: classes.track,
+                thumb: classes.thumb,
+                rail: classes.rail,
+                mark: classes.mark,
+            }}
+            defaultValue={0}
+            getAriaValueText={valuetext}
+            aria-labelledby="difficulty-slider"
+            step={1}
+            max={3}
+            valueLabelDisplay="off"
+            marks={difficultySliderMarks}
+            onChange={typingSettingsContext.changeDifficulty}
+        />
+      </div>
+      <div className="TTTLengthSelector slider" label="Text Length">
+        <Slider
+            classes={{
+                root: classes.root,
+                // content: classes.content,
+                markLabel: classes.markLabel,
+                track: classes.track,
+                thumb: classes.thumb,
+                rail: classes.rail,
+                mark: classes.mark,
+            }}
             defaultValue={150}
             getAriaValueText={valuetext}
             aria-labelledby="text-length-slider"
             step={10}
             max={400}
             min={20}
-            valueLabelDisplay="auto"
+            valueLabelDisplay="off"
             marks={TTTLengthSliderMarks}
             onChange={(e,val)=>{typingSettingsContext.setTTTLength(val);}}
         />
-        </div>
-      </TabPanel>
-      <TabPanel value={value} index={3}>
-          <div className="slider">something</div>
-        </TabPanel>
-
-    
-
+      </div>
+    </Tabs>
 </div>
 );
 }

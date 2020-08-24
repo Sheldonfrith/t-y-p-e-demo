@@ -17,10 +17,11 @@ export const TypingStatsContext = React.createContext({
     updateAccuracyPercentage: ()=> {},
     updateWastedKeysPercentage: ()=> {},
     newTTTReset: ()=> {},
+    errorIndexes: [],
 });
 
 let TTTStartTime = null;
-
+let errorIndexes = [];
 
 
 export default function TypingStatsProvider({ children }) {
@@ -81,7 +82,8 @@ export default function TypingStatsProvider({ children }) {
         setCharacterSpeeds(newCharacterSpeeds);
     },[characterSpeeds]);
 
-    const newMistypedChar = useCallback((correctChar, totalRealCharacters) => {
+    const newMistypedChar = useCallback((correctChar, totalRealCharacters, errorIndex) => {
+        errorIndexes.push(errorIndex);
         let newMistypedChars = mistypedChars;
         _.set(newMistypedChars, correctChar, mistypedChars[correctChar] ? mistypedChars[correctChar] + 1 : 1);
         const totalMistypedChars = Object.keys(newMistypedChars).reduce((total,char)=> total+newMistypedChars[char],0)
@@ -148,6 +150,7 @@ export default function TypingStatsProvider({ children }) {
         setAverageCharSpeeds({});
         setLastCharTime(null);
         TTTStartTime = null;
+        errorIndexes.length = 0;
         console.log('done stats reset');
     }, []);
     return (
@@ -166,6 +169,7 @@ export default function TypingStatsProvider({ children }) {
                 updateAccuracyPercentage: updateAccuracyPercentage,
                 updateWastedKeysPercentage: updateWastedKeysPercentage,
                 newTTTReset: newTTTReset,
+                errorIndexes:errorIndexes,
             }
             }
         >

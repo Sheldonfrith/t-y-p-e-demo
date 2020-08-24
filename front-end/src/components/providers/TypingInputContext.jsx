@@ -26,6 +26,7 @@ export const TypingInputContext = React.createContext({
 });
 
 let pauseOverlayDisplay = 'none'; //either none or block
+let finishedOverlayDisplay = 'none';
 let currentTTTStatus = 'not-started';
 let currentCharIndex = 0;
 let totalKeyPresses = 0;
@@ -107,6 +108,7 @@ export default function TypingInputProvider({children}) {
         prevCurrentTTT1 = currentTTT;
     },[currentTTT, updateColorList])
     //first characters color should start as green
+
     const setCurrentColor = useCallback((bgColor = null, textColor=null, index) => {
         // console.log('setting current color ', bgColor, textColor, index);
         bgColor = bgColor?getClassNamesFromColor(bgColor, 'bg'): null;
@@ -140,7 +142,7 @@ export default function TypingInputProvider({children}) {
         console.log('autopause timer done:', totalKeyPressesBeforeTimeout, totalKeyPresses);
         if (totalKeyPressesBeforeTimeout === totalKeyPresses){
             console.log('pausing due to timeout');
-            setIsPaused(true);
+            pause();
         }
         return;
         }
@@ -189,15 +191,26 @@ export default function TypingInputProvider({children}) {
         , [isPaused, currentStats, setAllColor]
     )
     const pause = useCallback(() => {
-        setIsPaused(true);
-
+         // dont fire if status is finished
+         if (currentTTTStatus === 'finished') return;
+         setIsPaused(true);
     },[]);
     const unPause = useCallback(() => {
         //don't fire at the begging of the app loading
         if (isPaused=== null) return;
-        setIsPaused(false);
-        
+        // dont fire if status is finished
+        if (currentTTTStatus === 'finished') return;
+        setIsPaused(false);    
     },[isPaused]);
+    const endTTT = useCallback(()=>{
+        console.log('current TTT finished');
+        currentTTTStatus = 'finished';
+        //color in all errors red
+        currentStats.errorIndexes.forEach(errorIndex => {
+            setCurrentColor('red',null,errorIndex);
+        })
+
+    },[setCurrentColor, currentStats.errorIndexes]);
     const handleInput = useCallback((event) => {
         //clear the input box so only individual characters are returned from the input event
         setCurrentKey(event.target.value);
@@ -244,10 +257,9 @@ export default function TypingInputProvider({children}) {
                     currentCharIndex ++;
                     //detect if we are at the end of the text and if so stop listening for keypresses and exit
                     //also make sure we are not running this before the session has even started
+                    //*ENd of TTT
                     if (currentCharIndex >= currentTTT.length && currentTTT.length >1) {
-                        currentTTTStatus = 'finished';
-                        //TODO and highlight the errors the user made
-                        pause();
+                        endTTT();
                         break;
                     }
                     setCurrentColor('green',null, parseInt(currentCharIndex));
@@ -257,7 +269,7 @@ export default function TypingInputProvider({children}) {
                     errorState = 1;
                     errorIndex = currentCharIndex;
                     realCurrentIndex = errorIndex?errorIndex-1:currentCharIndex;
-                    currentStats.newMistypedChar(currentTTT[currentCharIndex], (errorState>0)?realCurrentIndex+2:realCurrentIndex+1);
+                    currentStats.newMistypedChar(currentTTT[currentCharIndex], (errorState>0)?realCurrentIndex+2:realCurrentIndex+1, errorIndex);
                     //detect and set barrier state
                     errorState > currentSettings.maxCharsFromError ? barrierState = true : barrierState = false;
                     //incorrect key press> current key red, move forward one, next key grey
@@ -378,7 +390,7 @@ export default function TypingInputProvider({children}) {
         }
     },
     [keyPressTrigger, currentTTT, currentKey, currentSettings.maxCharsFromError, currentStats, isPaused,
-    newPauseTimer, setAllColor, setCurrentColor,]);
+    newPauseTimer, setAllColor, setCurrentColor, endTTT]);
 
     const newTTTReset = useCallback(() => {
         console.log('currentSettings:', currentTTT);
@@ -415,6 +427,7 @@ export default function TypingInputProvider({children}) {
             newTTTReset: newTTTReset,
             changeAutoPauseTime: changeAutoPauseTime,
             getCurrentTTT: getCurrentTTT,
+            currentTTTStatus: currentTTTStatus,
         }
         }
     >

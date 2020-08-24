@@ -12,7 +12,7 @@ const statsContext = useContext(TypingStatsContext);
 const inputContext = useContext(TypingInputContext);
 
 return (
-<div>
+<>
     <p><b>{typingStatsContext.WPM}</b> wpm</p>
     <p><b>{Math.round(typingStatsContext.accuracy)}%</b> accuracy</p>
     <p><b>{Math.round(typingStatsContext.wastedKeysPercentage)}%</b> keystrokes wasted </p>
@@ -23,7 +23,7 @@ return (
         await inputContext.newTTTReset();
         inputContext.unPause();
         console.log('finished resetting and generating a new TTT')
-    }}>Generate Fresh Text</button>
-</div>
+    }}>Reset Text</button>
+</>
 );
 }

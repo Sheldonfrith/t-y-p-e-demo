@@ -13,6 +13,7 @@ const typingInputContext = useContext(TypingInputContext);
 const currentTTT = useContext(CurrentTTTContext);
 const hiddenInputRef = useRef();
 const [pauseOverlayDisplay, setPauseOverlayDisplay] = useState('none');
+const [finishedOverlayDisplay, setFinishedOverlayDisplay] = useState('none');
 
 //when unpaused focus the hidden input
 useEffect(
@@ -43,12 +44,17 @@ useEffect(()=> {
     prevPauseTrigger = props.pauseTrigger;
 }, [props.pauseTrigger, typingInputContext])
 
+//when ttt is finished...
+useEffect(()=> {
+    if (typingInputContext.currentTTTStatus !== 'finished') return;
+    setFinishedOverlayDisplay('block');
+},[typingInputContext.currentTTTStatus])
 
 return (
     <ClickAwayListener onClickAway={() => typingInputContext.pause()}>
 
     <div className={'typingAreaContainer'}>
-    <div onKeyDown={typingInputContext.handleKeyDown} onClick={typingInputContext.unPause}>
+    <div onKeyDown={typingInputContext.handleKeyDown} >
         
         {currentTTT.currentTTT?
         currentTTT.currentTTT.map((char, index) => <TTTCharacter char={char} index={index} key={'tttchar'+index} className={typingInputContext.colorList.bg[index]+' '+typingInputContext.colorList.text[index]}/>)
@@ -70,9 +76,12 @@ return (
         />
     </div>
     </div>
-    <div className="pauseOverlay"  style={{display: pauseOverlayDisplay}}>
+    <div className="pauseOverlay"  style={{display: pauseOverlayDisplay}} onClick={typingInputContext.unPause}>
         <div className="pauseOverlayText" >Paused. Press Esc to unpause.</div>
-      </div>
+    </div>
+    <div className='finishedOverlay' style={{display: finishedOverlayDisplay}} onClick={()=> {setFinishedOverlayDisplay('none')}}>
+        <div className='finishedOverlayText'>Finished!</div>
+    </div>
     </div>
     </ClickAwayListener>
 );

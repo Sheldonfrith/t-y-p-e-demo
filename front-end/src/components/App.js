@@ -8,8 +8,14 @@ import StatsArea from './StatsArea'
 import SettingsArea from './SettingsArea'
 import Paper from '@material-ui/core/Paper'
 import CurrentTTTProvider from './providers/CurrentTTTContext';
-// import TestProvider from './providers/TestContext';
-// import TestConsumer from './TestConsumer';
+import { makeStyles } from '@material-ui/core/styles';
+import Header from './Header'
+
+const useStyles = makeStyles({
+  root: {
+    backgroundColor: '#F6F7EB',
+  },
+});
 
 function App() {
 
@@ -20,30 +26,23 @@ function App() {
       setTriggerTypingPause(prev => prev+1);
     }
   }
+  const classes = useStyles();
 
   return (
     <div  onKeyDown={handleGlobalKeyDown} tabIndex={-1}>
     <div className="App">
-      <Paper elevation={3} className="App-header">
-      <header>
-        <h1>T-Y-P-E Demo</h1>
-        <h3>A hardcore typing speed app by Sheldon Frith</h3>
-        {/* <TestProvider>
-          <TestConsumer/>
-        </TestProvider> */}
-      </header>
-      </Paper>
+      <Header className="App-header"/>
       <TypingSettingsProvider>
       <TypingStatsProvider>
       <TypingInputProvider>
       <CurrentTTTProvider>
-        <Paper elevation={3} className={'typingArea'}>
+        <Paper elevation={3} className={'typingArea'} classes={{root:classes.root}}>
           <TypingArea pauseTrigger={triggerTypingPause}/>
         </Paper>
-        <Paper elevation={2} className={'statsArea'}>
+        <Paper elevation={2} className={'statsArea'} classes={{root:classes.root}}>
           <StatsArea/>
         </Paper>
-        <Paper elevation={2} className={'settingsArea'}>
+        <Paper elevation={2} className={'settingsArea'} classes={{root:classes.root}}>
           <SettingsArea/>
         </Paper>
       </CurrentTTTProvider>
