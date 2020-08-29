@@ -1,9 +1,9 @@
 # t-y-p-e-demo
 
 ## By Sheldon Frith
-[Hire Me] (https://sheldonfrith.com/contact "hire me")
+[Hire Me] (https://sheldonfrith.com/contact)
 
-Test out this code at t-y-p-e.com.
+Test out this code at [t-y-p-e.com] (https://t-y-p-e.com/)
 
 A simple demo of typing app I'm working on. Front-end only.
 Built using Create-React-App, functional components, useContext hooks for application state, and custom CSS for styling.
