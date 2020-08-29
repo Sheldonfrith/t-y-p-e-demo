@@ -52,6 +52,12 @@ body {
   margin-right: 2%;
   padding: 1% 0 1% 0;
 }
+.App-header > h1 {
+  font-size: 200%;
+}
+.App-header > h3,a,button {
+  font-size: 80%;
+}
 
 .App-link {
   color: #61dafb;
@@ -236,6 +242,28 @@ body {
 	top:1px;
 }
 
+.gitHubButton {
+  box-shadow: 0 1vh 1vh -1vh #3b3142;
+	background-color: #F77F00;
+  border-radius:8px;
+  outline-style: none;
+  border-style: none;
+	display:inline-block;
+	cursor:pointer;
+	color:#ffffff;
+	padding: 1vh;
+  text-decoration:none;
+  font-size: 100%;
+}
+.gitHubButton:hover {
+  background:linear-gradient(to bottom, #3b3142 5%, #d90367 100%);
+	background-color:#3b3142;
+}
+.gitHubButton:active{
+  position:relative;
+	top:1px;  
+}
+
 
 .tab-list {
   border-bottom: 3px solid rgb(247, 127, 0,0.2);
@@ -263,11 +291,19 @@ body {
   color: white;
 }
 
+@media (min-width: 800px), (min-height: 900px) {
+  html {
+    font-size: 120%;
+  }
+}
+
 @media (min-width: 1200px), (min-height: 1300px) {
   html {
     font-size: 180%;
   }
 }
+
+
 
 @media only screen and (max-width: 400px) {
   .App {
