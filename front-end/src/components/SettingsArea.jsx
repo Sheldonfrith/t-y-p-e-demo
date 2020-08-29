@@ -65,7 +65,7 @@ const useStyles = makeStyles({
 
     // },
     markLabel: {
-        top: '2.2em',
+        top: '75%',
         overflow: 'visible',
     },
     track: {

@@ -6,7 +6,7 @@ return (
     <div className={props.className}>
     <h1>T-Y-P-E Demo</h1>
     <h3>A hardcore typing speed app for programmers.</h3>
-    <button className="actionButton" href="https://sheldonfrith.com">By Sheldon Frith</button>
+    <a href="https://sheldonfrith.com"><button className="actionButton">By Sheldon Frith</button></a>
     </div>
 );
 }
