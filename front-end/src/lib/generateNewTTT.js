@@ -98,7 +98,7 @@ export function applyDifficulty(probabilityList, difficulty){
 //*MAIN FUNCTION HERE...
 
 export default function generateNewTTT(difficulty, TTTLength, priorityList) {
-    console.log('generating new TTT', difficulty, TTTLength );
+    // console.log('generating new TTT', difficulty, TTTLength );
     //check input structure
     if (
         typeof difficulty !== 'string' ||

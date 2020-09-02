@@ -94,7 +94,7 @@ export default function TypingInputProvider({children}) {
         tempColorList = newColorList;
     },[currentTTT]);
     const getCurrentTTT = useCallback((newTTT)=>{
-        console.log('setting current ttt in typinginputcontext, colorlist is : ', colorList)
+        // console.log('setting current ttt in typinginputcontext, colorlist is : ', colorList)
         updateColorList(newTTT);
         setCurrentTTT(newTTT);
     },[colorList, updateColorList]);
@@ -103,7 +103,7 @@ export default function TypingInputProvider({children}) {
     useEffect(()=>{
         if (prevCurrentTTT1 === currentTTT) return;
         if (!currentTTT || !currentTTT.length) return;
-        console.log('useEffect current TTT update, set colorList', currentTTT)
+        // console.log('useEffect current TTT update, set colorList', currentTTT)
         updateColorList();
         prevCurrentTTT1 = currentTTT;
     },[currentTTT, updateColorList])
@@ -127,7 +127,7 @@ export default function TypingInputProvider({children}) {
     },[] );
     const setAllColor= useCallback( (bgColor = null, textColor=null) => {
         tempColorList = colorList;
-        console.log('setting all color; bg color',bgColor, 'text color', textColor, 'colorlist', tempColorList);
+        // console.log('setting all color; bg color',bgColor, 'text color', textColor, 'colorlist', tempColorList);
         bgColor = bgColor?getClassNamesFromColor(bgColor, 'bg'): null;
         textColor = textColor? getClassNamesFromColor(textColor, 'text'):null;
         //retain current values if new value isn't specified
@@ -139,9 +139,9 @@ export default function TypingInputProvider({children}) {
     },[colorList, ]);
     const newPauseTimer = useCallback((totalKeyPressesBeforeTimeout) => {
         setTimeout(() => {
-        console.log('autopause timer done:', totalKeyPressesBeforeTimeout, totalKeyPresses);
+        // console.log('autopause timer done:', totalKeyPressesBeforeTimeout, totalKeyPresses);
         if (totalKeyPressesBeforeTimeout === totalKeyPresses){
-            console.log('pausing due to timeout');
+            // console.log('pausing due to timeout');
             pause();
         }
         return;
@@ -159,7 +159,7 @@ export default function TypingInputProvider({children}) {
         () => {
             if (prevIsPaused1 === isPaused) return;
             if(isPaused === true) {
-                console.log('useeffect, detected pause');
+                // console.log('useeffect, detected pause');
                 pauseOverlayDisplay = 'block';
                 // setAllColor(null, 'fade');
                 startPause = new Date();
@@ -167,7 +167,7 @@ export default function TypingInputProvider({children}) {
                 prevIsPaused1 = isPaused;
             }
             if (isPaused === false) {
-                console.log('useeffect, detected unpause');
+                // console.log('useeffect, detected unpause');
                 pauseOverlayDisplay = 'none';
                 // setAllColor(null, 'unfade');
                 //stats related stuff:
@@ -203,7 +203,7 @@ export default function TypingInputProvider({children}) {
         setIsPaused(false);    
     },[isPaused]);
     const endTTT = useCallback(()=>{
-        console.log('current TTT finished');
+        // console.log('current TTT finished');
         currentTTTStatus = 'finished';
         //color in all errors red
         currentStats.errorIndexes.forEach(errorIndex => {
@@ -238,10 +238,10 @@ export default function TypingInputProvider({children}) {
         if (currentKey===null || keyPressTrigger === 0) return;
         totalKeyPresses ++;
 
-        console.log('currentkey useeffect :', currentKey);
+        // console.log('currentkey useeffect :', currentKey);
         const handleTypingEventByType = (eventType) => {
             let realCurrentIndex = errorIndex?errorIndex-1:currentCharIndex;
-            console.log(eventType);
+            // console.log(eventType);
             switch (eventType) {
                 case 'correct':
                     //TODO
@@ -343,7 +343,7 @@ export default function TypingInputProvider({children}) {
     
             // variables for this function
             const correctChar = currentTTT[currentCharIndex];
-            console.log('correct char', correctChar, currentCharIndex, currentTTT)
+            // console.log('correct char', correctChar, currentCharIndex, currentTTT)
             //Case 1: correct
             if (currentKey === correctChar && errorState < 1) {
                 handleTypingEventByType('correct');
@@ -377,7 +377,7 @@ export default function TypingInputProvider({children}) {
             console.log('error, detectkeypresstype did not catch that behaviour');
         }
         const callAll= () => {
-        console.log('callAll, relevant key detected');
+        // console.log('callAll, relevant key detected');
         detectTypingEventType();
         setHiddenInputVal('');
         }
@@ -393,7 +393,7 @@ export default function TypingInputProvider({children}) {
     newPauseTimer, setAllColor, setCurrentColor, endTTT]);
 
     const newTTTReset = useCallback(() => {
-        console.log('currentSettings:', currentTTT);
+        // console.log('currentSettings:', currentTTT);
         setIsPaused(true);
         setCurrentKey('');
         setKeyPressTrigger(0);
@@ -411,7 +411,7 @@ export default function TypingInputProvider({children}) {
         startPause = null;
         endPause = null;
         tempColorList = [];
-        console.log('done input');
+        // console.log('done input');
     },[currentTTT,]);
     return (
     <TypingInputContext.Provider

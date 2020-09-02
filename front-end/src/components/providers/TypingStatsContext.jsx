@@ -40,7 +40,7 @@ export default function TypingStatsProvider({ children }) {
 
     //udpate average character speeds
     useEffect(()=> {
-        console.log('useeffect for updating ave char speeds');
+        // console.log('useeffect for updating ave char speeds');
         let newAverageCharSpeeds = {};
         Object.keys(characterSpeeds).forEach(
             char => {
@@ -92,7 +92,7 @@ export default function TypingStatsProvider({ children }) {
     },[mistypedChars]);
     const updateAccuracyPercentage = useCallback((totalRealCharacters) => {
         const totalMistypedChars = Object.keys(mistypedChars).reduce((total,char)=> total+mistypedChars[char],0)
-        console.log('update accuracy: ', totalMistypedChars, totalRealCharacters);
+        // console.log('update accuracy: ', totalMistypedChars, totalRealCharacters);
         setAccuracy(100.0-(totalMistypedChars/(totalRealCharacters/100.0)));
     },[mistypedChars])
     const incrementWastedKeys = useCallback((totalCharactersTyped) => {
@@ -151,7 +151,7 @@ export default function TypingStatsProvider({ children }) {
         setLastCharTime(null);
         TTTStartTime = null;
         errorIndexes.length = 0;
-        console.log('done stats reset');
+        // console.log('done stats reset');
     }, []);
     return (
         <TypingStatsContext.Provider

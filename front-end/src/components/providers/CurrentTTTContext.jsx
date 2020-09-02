@@ -18,13 +18,13 @@ const typingSettingsContext = useContext(TypingSettingsContext);
 const typingInputContext = useContext(TypingInputContext);
 const newTTT = useCallback(() => {
     const newTTT = generateNewTTT(typingSettingsContext.difficulty, typingSettingsContext.TTTLength, getPriorityList());
-    console.log('newTTT, ',newTTT);
+    // console.log('newTTT, ',newTTT);
     //update the parent components
     typingInputContext.getCurrentTTT(newTTT);
     setCurrentTTT(newTTT); 
 },[typingSettingsContext.difficulty, typingSettingsContext.TTTLength, typingInputContext]);
 const initialNewTTT = useCallback(() => {
-    console.log('initial currentTTT State');
+    // console.log('initial currentTTT State');
     return generateNewTTT(typingSettingsContext.difficulty, typingSettingsContext.TTTLength, getPriorityList());
 },[typingSettingsContext.difficulty, typingSettingsContext.TTTLength]);
 const [currentTTT, setCurrentTTT] = useState(initialNewTTT);
