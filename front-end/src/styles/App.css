@@ -1,3 +1,16 @@
+@keyframes flashingGreenCursor {
+  70% {
+    background-color: #C3E991;
+  }
+  80% {
+    background-color: #F6F7EB;
+  } 
+  100% {
+    background-color: #C3E991;
+  }
+}
+
+
 
 span {
   font-family: monospace;
@@ -72,6 +85,7 @@ body {
 }
 .green {
   background-color: #C3E991;
+  animation: flashingGreenCursor 0.8s infinite;
 }
 .grey {
   background-color: #999497;
@@ -148,10 +162,12 @@ body {
   padding: 2vh;
   background-color: #F6F7EB;
   font-size: 160%;
+  font-family: monospace;
   grid-row:8 / span 21;
   grid-column: 1/ 30;
   white-space: pre-wrap;
   overflow: auto;
+  line-height: normal;
 }
 
 .settingsArea {
